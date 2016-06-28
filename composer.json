@@ -1,13 +1,13 @@
 {
-    "name": "robwilkerson/CakePHP-Audit-Log-Plugin",
+    "name": "GalenCollege/CakePHP-Audit-Log-Plugin",
     "type": "cakephp-plugin",
     "description": "Audit Plugin for CakePHP",
     "keywords": ["cakephp","auditlog"],
     "license": "MIT",
     "authors": [
         {
-            "name": "Rob Wilkerson",
-            "homepage": "http://robwilkerson.org/"
+            "name": "Chris Howatt",
+            "homepage": "http://galencollege.edu/"
         }
     ],
     "require": {
