@@ -48,14 +48,15 @@ class AuditableBehavior extends Behavior
     {
         parent::__construct($table, $config);
         $this->_table = $table;
-        $this->_ignore_properties = $config;
+        $this->_ignore_properties = isset($config['ignore']) ? $config['ignore'] : null;
+        $this->_include_properties = isset($config['include']) ? $config['include'] : null;
     }
 
     /**
      * @param Event $event
      * @param EntityInterface $entity
      */
-    public function afterSafe(Event $event, EntityInterface $entity, ArrayObject $options)
+    public function afterSave(Event $event, EntityInterface $entity, ArrayObject $options)
     {
         //before change the data
         $arrOldData = $entity->extractOriginal($entity->visibleProperties());
@@ -63,6 +64,13 @@ class AuditableBehavior extends Behavior
         $arrUpdatedProperties = $entity->extractOriginalChanged($entity->visibleProperties());
         //updated data object
         $arrUpdatedData = $entity->jsonSerialize();
+        
+        if(method_exists($entity, 'getUserId')){
+            $source_id = $entity->getUserId();
+        } else {
+            $source_id = null;
+        }
+        
         //audit data
         $arrData = array(
             'id' => self::request_id(),
@@ -71,26 +79,31 @@ class AuditableBehavior extends Behavior
             'entity_id' => $entity->id,
             'request_id' => self::request_id(),
             'json_object' => json_encode($arrUpdatedData),
-            'source_id' => isset($source['id']) ? $source['id'] : null,
+            'source_id' => $source_id,
             'description' => isset($source['description']) ? $source['description'] : null
         );
         //saving audit record
-        $auditTable = TableRegistry::get('Audits');
+        $auditTable = TableRegistry::get('AuditLog.Audits');
         $audit = $auditTable->newEntity($arrData);
         $auditTable->save($audit);
 
-        $auditDeltaTable = TableRegistry::get('AuditDeltas');
+        $auditDeltaTable = TableRegistry::get('AuditLog.AuditDeltas');
         foreach ($arrUpdatedProperties as $sPropertyName => $sValue) {
             //ignore the fields
-            if (in_array($sPropertyName, $this->_ignore_properties)) {
+            if (isset($this->_ignore_properties) && in_array($sPropertyName, $this->_ignore_properties)) {
                 continue;
             }
+            
+            if(isset($this->_include_properties) && !in_array($sPropertyName, $this->_include_properties)) {
+                continue;
+            }
+
             $delta = array(
                 'id' => Text::uuid(),
                 'audit_id' => $audit->id,
                 'property_name' => $sPropertyName,
                 'old_value' => $sValue,
-                'new_value' => $entity->$sPropertyName
+                'new_value' => $entity->$sPropertyName,
             );
             $auditDeltas = $auditDeltaTable->newEntity($delta);
             $auditDeltaTable->save($auditDeltas);
