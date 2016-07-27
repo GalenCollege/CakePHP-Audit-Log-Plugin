@@ -85,6 +85,25 @@ class AuditableBehavior extends Behavior
 		//saving audit record
 		$auditTable = TableRegistry::get('AuditLog.Audits');
 		$audit = $auditTable->newEntity($arrData);
+		
+		$totalAttributesChanged = 0;
+		foreach ($arrUpdatedProperties as $sPropertyName => $sValue) {
+			//ignore the fields
+			if (isset($this->_ignore_properties) && in_array($sPropertyName, $this->_ignore_properties)) {
+				continue;
+			}
+
+			if(isset($this->_include_properties) && !in_array($sPropertyName, $this->_include_properties)) {
+				continue;
+			}
+			
+			$totalAttributesChanged += 1;
+		}
+		
+		if(!$totalAttributesChanged){
+			return true;
+		}
+		
 		$auditTable->save($audit);
 
 		$auditDeltaTable = TableRegistry::get('AuditLog.AuditDeltas');
