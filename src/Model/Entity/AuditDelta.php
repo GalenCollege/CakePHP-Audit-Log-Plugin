@@ -21,7 +21,10 @@ class AuditDelta extends Entity
 				$output = $result->{$config[$this->property_name]['field']};
 			} catch(\Cake\Datasource\Exception\InvalidPrimaryKeyException $ex){
 				$output = $this->old_value;
+			} catch(\Cake\Datasource\Exception\RecordNotFoundException $ex){
+				$output = $this->old_value;
 			}
+			
 		} else {
 			$output = $this->old_value;
 		}
@@ -40,6 +43,8 @@ class AuditDelta extends Entity
 				$output = $result->{$config[$this->property_name]['field']};
 			} catch(\Cake\Datasource\Exception\InvalidPrimaryKeyException $ex){
 				$output = $this->new_value;
+			} catch(\Cake\Datasource\Exception\RecordNotFoundException $ex){
+				$output = $this->old_value;
 			}
 		} else {
 			$output = $this->new_value;
