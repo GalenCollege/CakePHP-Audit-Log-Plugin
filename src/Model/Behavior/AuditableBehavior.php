@@ -50,6 +50,7 @@ class AuditableBehavior extends Behavior
 		$this->_table = $table;
 		$this->_ignore_properties = isset($config['ignore']) ? $config['ignore'] : null;
 		$this->_include_properties = isset($config['include']) ? $config['include'] : null;
+		$this->_source_id = isset($config['source_id']) ? $config['source_id'] : null;
 	}
 
 	/**
@@ -65,12 +66,6 @@ class AuditableBehavior extends Behavior
 		//updated data object
 		$arrUpdatedData = $entity->jsonSerialize();
 
-		if(method_exists($entity, 'getUserId')){
-			$source_id = $entity->getUserId();
-		} else {
-			$source_id = null;
-		}
-
 		//audit data
 		$arrData = array(
 			'id' => self::request_id(),
@@ -79,8 +74,8 @@ class AuditableBehavior extends Behavior
 			'entity_id' => $entity->id,
 			'request_id' => self::request_id(),
 			'json_object' => json_encode($arrUpdatedData),
-			'source_id' => $source_id,
-			'description' => isset($source['description']) ? $source['description'] : null
+			'source_id' => $this->_source_id,
+			'description' => isset($entity->audit_log) ? $entity->audit_log : null
 		);
 		//saving audit record
 		$auditTable = TableRegistry::get('AuditLog.Audits');
@@ -127,6 +122,10 @@ class AuditableBehavior extends Behavior
 				$newValue = json_encode($entity->$sPropertyName);
 			} else {
 				$newValue = $entity->$sPropertyName;
+			}
+			
+			if(empty($oldValue) && empty($newValue)){
+				continue;
 			}
 
 			$delta = array(
