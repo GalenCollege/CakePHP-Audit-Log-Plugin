@@ -73,7 +73,7 @@ class AuditableBehavior extends Behavior
 			'model' => $event->subject()->alias(),
 			'entity_id' => $entity->id,
 			'request_id' => self::request_id(),
-			'json_object' => json_encode($arrUpdatedData),
+			'json_object' => null, //json_encode($arrUpdatedData),
 			'source_id' => $this->_source_id,
 			'description' => isset($entity->audit_log) ? $entity->audit_log : null
 		);
